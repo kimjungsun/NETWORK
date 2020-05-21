@@ -8,6 +8,8 @@
 void error_handling(char *message);
 void *thr_read(void *arg);
 void *thr_write(void *arg);
+
+
 int main(int argc, char* argv[])
 {
         int sock;
@@ -55,7 +57,7 @@ void *thr_write(void *arg){
 		{
 	       printf(" sending '0'.... now! \n");
               write(sock,&buffer,sizeof(buffer));
-	      fflush(stdin);
+	      fflush(stdin);    //혹은 scanf(" %c", &buffer); 로 위의 코드 수정해도 됨.
 		}
 	}
 }
@@ -68,14 +70,10 @@ void *thr_read(void *arg){
 	}
 }
 
-
 void error_handling(char *message)
-
 {
         fputs(message, stderr);
-
         fputc('\n', stderr);
-
         exit(1);
 
 }
