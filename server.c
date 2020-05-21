@@ -1,22 +1,16 @@
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <string.h>
-
 #include <unistd.h>
-
 #include <arpa/inet.h>
-
 #include <sys/socket.h>
-
 #include<pthread.h>
 
 void error_handling(char *message);
 void *thr_func(void *arg);
 int clnt_sock1,clnt_sock2;
 int clientsock[2] ;
-char buffer;
+char buffer;     // '0'과 '1' 만으로 
 
 int main(int argc, char *argv[])
 
@@ -49,7 +43,7 @@ int main(int argc, char *argv[])
 	serv_addr1.sin_port = htons(atoi(argv[1]));
 	serv_addr2.sin_family = AF_INET;
 	serv_addr2.sin_addr.s_addr = htonl(INADDR_ANY);
-	serv_addr2.sin_port = htons(atoi(argv[1])+1);
+	serv_addr2.sin_port = htons(atoi(argv[1])+1);    //포트번호 1차이만 두고 두개의 소켓을 독립 생성 
 
     if(bind(sock1,(struct sockaddr*)&serv_addr1,sizeof(serv_addr1))==-1){
         printf("bind 1error\n"); 
@@ -61,16 +55,16 @@ int main(int argc, char *argv[])
         listen(sock1,5);
         listen(sock2,5);
 
-        if((clnt_sock1 = accept(sock1,(struct sockaddr*)&clnt_addr,&clnt_addr_size))<0)
+        if((clnt_sock1 = accept(sock1,(struct sockaddr*)&clnt_addr,&clnt_addr_size))<0)      
             error_handling("accept error");
         if((clnt_sock2 = accept(sock2,(struct sockaddr*)&clnt_addr,&clnt_addr_size))<0)
             error_handling("accept error");
         clientsock[0] = clnt_sock1;
 	clientsock[1] = clnt_sock2;
-	pthread_create(&tid[0],NULL,&thr_func,(void *)&clnt_sock1);
+	pthread_create(&tid[0],NULL,&thr_func,(void *)&clnt_sock1);    //각각의 소켓을 쓰레드로!
         pthread_create(&tid[1],NULL,&thr_func,(void *)&clnt_sock2);
 	
-	pthread_join(tid[0],(void **)&status);
+	pthread_join(tid[0],(void **)&status);   // main은 쓰레드 모두 끝날때까지 기다림
 	pthread_join(tid[1],(void **)&status);
 
 	return 0 ; 
@@ -80,23 +74,21 @@ void *thr_func(void *arg){
 int mysock = (int)*((int *)arg);
 int hissock;
 if( mysock == clientsock[0] ) 
-	hissock = clientsock[1];
+	hissock = clientsock[1];     // 각자의 소켓을 확인하고 상대의 소켓을 hissock로 사용하여 통신하기. 
 else 
 	hissock = clientsock[0];
-while(1){
-if(read(mysock,&buffer,sizeof(buffer)!=0)){
 	
-        write(hissock,&buffer,sizeof(buffer));
-	printf(" Writing  clnt_sock[%d] buffer : %c\n", mysock,buffer);
+while(1){
+	
+if(read(mysock,&buffer,sizeof(buffer)!=0)){
+        write(hissock,&buffer,sizeof(buffer));           // my socket 에서 읽어온 버퍼값을 his socket에 써주는 역할
+	//printf(" Writing  clnt_sock[%d] buffer : %c\n", mysock,buffer);
 	  
 }
 }
 }   
 
-
-
 void error_handling(char *message)
-
 {
 
 	fputs(message, stderr);
